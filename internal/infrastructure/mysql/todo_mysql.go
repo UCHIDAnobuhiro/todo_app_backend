@@ -26,3 +26,7 @@ func (r *TodoMysql) FindAll() ([]domain.Todo, error) {
 func (r *TodoMysql) Create(todo domain.Todo) error {
 	return r.DB.Create(&todo).Error
 }
+
+func (r *TodoMysql) Update(todo domain.Todo) error {
+	return r.DB.Save(&todo).Error
+}

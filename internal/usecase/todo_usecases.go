@@ -20,3 +20,7 @@ func (uc *TodoUsecase) GetTodos() ([]domain.Todo, error) {
 func (uc *TodoUsecase) AddTodo(todo domain.Todo) error {
 	return uc.Repo.Create(todo)
 }
+
+func (u *TodoUsecase) UpdateTodo(todo domain.Todo) error {
+	return u.Repo.Update(todo)
+}
