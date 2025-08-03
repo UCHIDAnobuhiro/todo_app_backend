@@ -30,3 +30,7 @@ func (r *TodoMysql) Create(todo domain.Todo) error {
 func (r *TodoMysql) Update(todo domain.Todo) error {
 	return r.DB.Save(&todo).Error
 }
+
+func (r *TodoMysql) Delete(id int) error {
+	return r.DB.Delete(&domain.Todo{}, id).Error
+}

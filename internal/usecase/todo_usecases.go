@@ -21,6 +21,10 @@ func (uc *TodoUsecase) AddTodo(todo domain.Todo) error {
 	return uc.Repo.Create(todo)
 }
 
-func (u *TodoUsecase) UpdateTodo(todo domain.Todo) error {
-	return u.Repo.Update(todo)
+func (uc *TodoUsecase) UpdateTodo(todo domain.Todo) error {
+	return uc.Repo.Update(todo)
+}
+
+func (uc *TodoUsecase) DeleteTodo(id int) error {
+	return uc.Repo.Delete(id)
 }

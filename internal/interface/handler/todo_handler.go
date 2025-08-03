@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"todo_backend/internal/domain"
 	"todo_backend/internal/usecase"
 
@@ -17,6 +18,7 @@ func NewTodoHandler(r *gin.Engine, uc *usecase.TodoUsecase) {
 	r.GET("/todos", h.GetTodos)
 	r.POST("/todos", h.CreateTodo)
 	r.PUT("/todos/:id", h.UpdateTodo)
+	r.DELETE("/todos/:id", h.DeleteTodo)
 }
 
 func (h *TodoHandler) GetTodos(c *gin.Context) {
@@ -52,4 +54,21 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "updated"})
+}
+
+func (h *TodoHandler) DeleteTodo(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	if err := h.Usecase.DeleteTodo(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "deleted"})
+
 }
