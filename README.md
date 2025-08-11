@@ -15,7 +15,7 @@ Go 言語で構築したシンプルな TODO バックエンドです。Gin（HT
 
 ### 技術スタック
 
-- Go 1.22+
+- Go 1.24+
 - Gin (github.com/gin-gonic/gin)
 - GORM (gorm.io/gorm) + ドライバ（SQLite デフォルト）
 - gin-contrib/cors
