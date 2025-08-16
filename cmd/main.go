@@ -1,38 +1,64 @@
 package main
 
 import (
+	"log"
+	"os"
+	"path/filepath"
+
 	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	"todo_backend/internal/domain"
+	"todo_backend/internal/infrastructure"
 	"todo_backend/internal/infrastructure/mysql"
 	"todo_backend/internal/interface/handler"
 	"todo_backend/internal/usecase"
 )
 
 func main() {
+	// .envを読み込む
+	if err := godotenv.Load(".env"); err != nil {
+		log.Println("[INFO] .env not found; using system environment variables")
+	}
+
 	// DB初期化（今回はSQLite）
-	db, err := gorm.Open(sqlite.Open("todo.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("./todo.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
+	dbPath, _ := filepath.Abs("./todo.db")
+	log.Println("USING_SQLITE:", dbPath)
 
 	// マイグレーション
-	db.AutoMigrate(&domain.Todo{})
+	if err := db.AutoMigrate(&domain.User{}, &domain.Todo{}); err != nil {
+		log.Fatalf("failed to migrate: %v", err)
+	}
 
-	// DI
-	repo := mysql.NewTodoMysql(db)
-	uc := usecase.NewTodoUsecase(repo)
+	// Repository
+	userRepo := mysql.NewUserMySQL(db)
+	todoRepo := mysql.NewTodoMysql(db)
 
-	// Ginルーター設定
-	r := gin.Default()
+	// Usecase
+	authUC := usecase.NewAuthUsecase(userRepo)
+	todoUC := usecase.NewTodoUsecase(todoRepo)
+
+	// Handler
+	authH := handler.NewAuthHandler(authUC)
+
+	// ルータ生成
+	router := infrastructure.NewRouter(authH, todoUC)
 
 	// CORS追加
-	r.Use(cors.Default())
+	router.Use(cors.Default())
 
-	handler.NewTodoHandler(r, uc)
+	// JWT_SECRETチェック（開発中の注意喚起）
+	if os.Getenv("JWT_SECRET") == "" {
+		log.Println("[WARN] JWT_SECRET is not set. Set a strong secret in production.")
+	}
 
-	r.Run(":8080")
+	if err := router.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }

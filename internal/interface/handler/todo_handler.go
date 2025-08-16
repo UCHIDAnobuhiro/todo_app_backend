@@ -18,7 +18,7 @@ type TodoHandler struct {
 // NewTodoHandlerは、TodoHandlerを生成し、Ginのルーターにエンドポイントを登録します。
 // r: Ginのエンジン
 // uc: Todoユースケース
-func NewTodoHandler(r *gin.Engine, uc *usecase.TodoUsecase) {
+func NewTodoHandler(r gin.IRoutes, uc *usecase.TodoUsecase) {
 	h := &TodoHandler{Usecase: uc}
 	r.GET("/todos", h.GetTodos)
 	r.POST("/todos", h.CreateTodo)
@@ -63,7 +63,7 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 		return
 	}
 	if err := h.Usecase.UpdateTodo(todo); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "updated"})
