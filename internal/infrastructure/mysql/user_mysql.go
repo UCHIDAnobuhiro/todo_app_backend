@@ -13,9 +13,12 @@ type userMySQL struct {
 	db *gorm.DB
 }
 
-// NewUserMySQLはuserMySQLの新しいインスタンスを返します。
-// 引数dbは GORMの*gorm.DBで、DB接続済みのオブジェクトを渡してください。
-func NewUserMySQL(db *gorm.DB) repository.UserRepository {
+// コンパイル時にuserMySQLがUserRepositoryを実装していることを確認する。
+var _ repository.UserRepository = (*userMySQL)(nil)
+
+// NewUserMysqlは、指定された gorm.DB接続を使用するUserMysqlの
+// 新しいインスタンスを返します（DI用のコンストラクタ）
+func NewUserMySQL(db *gorm.DB) *userMySQL {
 	return &userMySQL{db: db}
 }
 
