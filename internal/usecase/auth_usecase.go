@@ -57,7 +57,7 @@ func (u *authUsecase) Login(email, password string) (string, error) {
 		return "", errors.New("invalid credentials")
 	}
 
-	// 2. bcryptでパスワード検
+	// 2. bcryptでパスワード検証
 	// 第1引数が「ハッシュ」、第2引数が「平文」
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		log.Printf("[LOGIN] bcrypt NG: %v", err)
@@ -71,7 +71,7 @@ func (u *authUsecase) Login(email, password string) (string, error) {
 		return "", errors.New("server misconfigured: JWT_SECRET missing")
 	}
 
-	// 成功時にログを出力し、トークンを返す
+	// 4. JWT のクレーム設定
 	claims := jwt.MapClaims{
 		"sub":   user.ID,
 		"exp":   time.Now().Add(24 * time.Hour).Unix(), // MVP: 24h
