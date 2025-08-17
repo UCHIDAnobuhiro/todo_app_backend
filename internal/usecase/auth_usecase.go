@@ -73,10 +73,10 @@ func (u *authUsecase) Login(email, password string) (string, error) {
 
 	// 4. JWT のクレーム設定
 	claims := jwt.MapClaims{
-		"sub":   user.ID,
-		"exp":   time.Now().Add(24 * time.Hour).Unix(), // MVP: 24h
-		"iat":   time.Now().Unix(),
-		"email": user.Email,
+		"sub":   user.ID,                               // ユーザーID（標準: sub）
+		"exp":   time.Now().Add(24 * time.Hour).Unix(), // 有効期限（標準: exp）
+		"iat":   time.Now().Unix(),                     // 発行時刻（標準: iat）
+		"email": user.Email,                            // アプリ独自の公開クレーム
 	}
 
 	// 署名付きJWTの生成
