@@ -3,7 +3,9 @@ package handler
 import (
 	"net/http"
 	"strconv"
+
 	"todo_backend/internal/domain"
+	jwtmw "todo_backend/internal/infrastructure/jwt"
 	"todo_backend/internal/usecase"
 
 	"github.com/gin-gonic/gin"
@@ -26,10 +28,25 @@ func NewTodoHandler(r gin.IRoutes, uc *usecase.TodoUsecase) {
 	r.DELETE("/todos/:id", h.DeleteTodo)
 }
 
+func getUserID(c *gin.Context) (uint, bool) {
+	uidAny, ok := c.Get(jwtmw.ContextUserID)
+	if !ok {
+		return 0, false
+	}
+	uid, ok := uidAny.(uint)
+	return uid, ok
+}
+
 // GetTodosは、全てのTodoを取得してJSON形式で返します。
 // HTTP:GET/todos
 func (h *TodoHandler) GetTodos(c *gin.Context) {
-	todos, err := h.Usecase.GetTodos()
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	todos, err := h.Usecase.GetTodos(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -41,11 +58,19 @@ func (h *TodoHandler) GetTodos(c *gin.Context) {
 // リクエストボディはJSON形式で、Todo構造体にバインドされます。
 // HTTP:POST/todos
 func (h *TodoHandler) CreateTodo(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	var todo domain.Todo
 	if err := c.ShouldBindJSON(&todo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	todo.UserID = userID
+
 	if err := h.Usecase.AddTodo(todo); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -57,11 +82,19 @@ func (h *TodoHandler) CreateTodo(c *gin.Context) {
 // リクエストボディはJSON形式で、Todo構造体にバインドされます。
 // HTTP:PUT/todos/:id
 func (h *TodoHandler) UpdateTodo(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	var todo domain.Todo
 	if err := c.ShouldBindJSON(&todo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	todo.UserID = userID
+
 	if err := h.Usecase.UpdateTodo(todo); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -73,6 +106,12 @@ func (h *TodoHandler) UpdateTodo(c *gin.Context) {
 // URLパラメータ:idを整数に変換して処理します。
 // HTTP: DELETE /todos/:id
 func (h *TodoHandler) DeleteTodo(c *gin.Context) {
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -80,7 +119,7 @@ func (h *TodoHandler) DeleteTodo(c *gin.Context) {
 		return
 	}
 
-	if err := h.Usecase.DeleteTodo(id); err != nil {
+	if err := h.Usecase.DeleteTodo(userID, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

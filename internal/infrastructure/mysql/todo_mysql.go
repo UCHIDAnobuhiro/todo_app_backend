@@ -24,10 +24,10 @@ func NewTodoMysql(db *gorm.DB) *TodoMysql {
 	return &TodoMysql{DB: db}
 }
 
-// FindAll は、データベースから全ての Todo を取得します。
-func (r *TodoMysql) FindAll() ([]domain.Todo, error) {
+// FindByUser は、データベースから特定の user ID の Todo を取得します。
+func (r *TodoMysql) FindByUser(userID uint) ([]domain.Todo, error) {
 	var todos []domain.Todo
-	err := r.DB.Find(&todos).Error
+	err := r.DB.Where("user_id = ?", userID).Find(&todos).Error
 	return todos, err
 }
 
@@ -38,10 +38,16 @@ func (r *TodoMysql) Create(todo domain.Todo) error {
 
 // Update は、指定されたTodoの情報をデータベース上で更新します。
 func (r *TodoMysql) Update(todo domain.Todo) error {
-	return r.DB.Save(&todo).Error
+	return r.DB.Model(&domain.Todo{}).
+		Where("id = ? AND user_id = ?", todo.ID, todo.UserID).
+		Updates(map[string]any{
+			"title":     todo.Title,
+			"completed": todo.Completed,
+		}).Error
 }
 
 // Delete は、指定されたIDのTodoをデータベースから削除します。
-func (r *TodoMysql) Delete(id int) error {
-	return r.DB.Delete(&domain.Todo{}, id).Error
+func (r *TodoMysql) Delete(userID uint, id int) error {
+	return r.DB.Where("id = ? AND user_id = ?", id, userID).
+		Delete(&domain.Todo{}).Error
 }
