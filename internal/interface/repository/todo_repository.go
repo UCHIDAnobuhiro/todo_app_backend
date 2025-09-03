@@ -6,9 +6,9 @@ import "todo_backend/internal/domain"
 // Clean Architecture における Repository 層の契約を表し、
 // 実際のデータストア（MySQL、PostgreSQL、メモリなど）の実装はこのインターフェースを満たす必要があります。
 type TodoRepository interface {
-	// FindAll は、登録されている全ての Todo を取得します。
+	// FindAll は、指定ユーザーの全ての Todo を取得します。
 	// 戻り値は Todo のスライスと、エラー情報です。
-	FindAll() ([]domain.Todo, error)
+	FindByUser(userId uint) ([]domain.Todo, error)
 
 	// Create は、新しい Todo を永続化します。
 	// 引数には作成する Todo エンティティを渡します。
@@ -19,5 +19,5 @@ type TodoRepository interface {
 	Update(todo domain.Todo) error
 
 	// Delete は、指定された ID の Todo を削除します。
-	Delete(id int) error
+	Delete(userID uint, id int) error
 }

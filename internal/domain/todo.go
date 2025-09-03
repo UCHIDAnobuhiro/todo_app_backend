@@ -8,6 +8,8 @@ package domain
 type Todo struct {
 	// ID はタスクを一意に識別する番号です。
 	ID uint `json:"id"`
+	// UserID はこのタスクを所有するユーザーのIDです。
+	UserID uint `json:"user_id"`
 	// Title はタスクの内容や名前を表します
 	Title string `json:"title"`
 	// Completed はタスクが完了しているかどうかを示します。

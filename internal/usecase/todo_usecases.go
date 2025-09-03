@@ -20,8 +20,8 @@ func NewTodoUsecase(r repository.TodoRepository) *TodoUsecase {
 }
 
 // GetTodosは、登録されている全てのTodoを取得します。
-func (uc *TodoUsecase) GetTodos() ([]domain.Todo, error) {
-	return uc.Repo.FindAll()
+func (uc *TodoUsecase) GetTodos(userID uint) ([]domain.Todo, error) {
+	return uc.Repo.FindByUser(userID)
 }
 
 // AddTodoは、新しいTodoを作成して保存します。
@@ -35,6 +35,6 @@ func (uc *TodoUsecase) UpdateTodo(todo domain.Todo) error {
 }
 
 // DeleteTodoは、指定されたIDのTodoを削除します。
-func (uc *TodoUsecase) DeleteTodo(id int) error {
-	return uc.Repo.Delete(id)
+func (uc *TodoUsecase) DeleteTodo(userID uint, id int) error {
+	return uc.Repo.Delete(userID, id)
 }
